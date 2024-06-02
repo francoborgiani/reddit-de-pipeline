@@ -60,6 +60,11 @@ def main():
     """Exctract Reddit data and load to CSV"""
     validate_input(output_name)
     reddit_instance = api_connect()
+    posts = subreddit_posts(reddit_instance)
+    exctracted_posts = extract_data(posts)
+    transformed_posts = transform_data(exctracted_posts)
+    
+    load_to_csv(transformed_posts)
 
 
 def api_connect():
@@ -84,3 +89,53 @@ def subreddit_posts(reddit_instance):
     except Exception as e:
         print(f"Unable to get redit posts. Error: {e}")
         sys.exit(1)
+
+def extract_data(posts):
+    """Exctract data to Pandas dataframe object"""
+    items_list = []
+
+    try:
+        for submission in posts:
+            to_dict = vars(submission)
+            sub_dict = {field: to_dict[field] for field in POST_FIELDS}
+            items_list.append(sub_dict)
+
+        return pd.DataFrame(items_list)
+
+    except Exception as e:
+        print(f"Failed creating posts data frame. Error: {e}")
+        sys.exit(1)
+
+
+def transform_data(posts_df):
+    """Some basic transformation of data. To be refactored at a later point."""
+    try:
+        # Convert epoch to UTC
+        posts_df["created_utc"] = pd.to_datetime(posts_df["created_utc"], unit="s")
+        # Fields don't appear to return as booleans (e.g. False or Epoch time). Needs further investigation but forcing as False or True for now.
+        # TODO: Remove all but the edited line, as not necessary. For edited line, rather than force as boolean, keep date-time of last
+        # edit and set all else to None.
+        posts_df["over_18"] = np.where(
+            (posts_df["over_18"] == "False") | (posts_df["over_18"] == False), False, True
+        ).astype(bool)
+        posts_df["edited"] = np.where(
+            (posts_df["edited"] == "False") | (posts_df["edited"] == False), False, True
+        ).astype(bool)
+        posts_df["spoiler"] = np.where(
+            (posts_df["spoiler"] == "False") | (posts_df["spoiler"] == False), False, True
+        ).astype(bool)
+        posts_df["stickied"] = np.where(
+            (posts_df["stickied"] == "False") | (posts_df["stickied"] == False), False, True
+        ).astype(bool)
+        return posts_df
+    except Exception as e:
+        print(f"There was an error transforming the dataframe. Error: {e}")
+
+
+def load_to_csv(extracted_data_df):
+    """Save extracted data to CSV file in /tmp folder"""
+    extracted_data_df.to_csv(f"/tmp/{output_name}.csv", index=False)
+
+
+if __name__ == '__main__':
+    main()
