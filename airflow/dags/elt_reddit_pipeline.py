@@ -35,7 +35,7 @@ with DAG(
 
     upload_to_s3 = BashOperator(
         task_id="upload_to_s3",
-        bash_command=f"python /opt/airflow/extraction/upload_s3_etl.py {output_name}",
+        bash_command=f"python /opt/airflow/extraction/upload_aws_s3_etl.py {output_name}",
         dag=dag
     )
 
