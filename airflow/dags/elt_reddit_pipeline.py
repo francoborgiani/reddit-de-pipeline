@@ -35,5 +35,17 @@ with DAG(
 
     upload_to_s3 = BashOperator(
         task_id="upload_to_s3",
-        bash_command=f"python /opt/airflow/extraction/upload_to_s3.py"
+        bash_command=f"python /opt/airflow/extraction/upload_to_s3_etl.py {output_name}",
+        dag=dag
     )
+
+    upload_to_s3.doc_md = "Upload Reddit CSV data to S3 bucket"
+
+    copy_to_redshift = BashOperator(
+        task_id="copy_to_redshift",
+        bash_command=f"python /opt/airflow/extraction/upload_aws_redshift_etl.py {output_name}"
+    )
+
+    copy_to_redshift.doc_md = "Copy S3 CSV file to Redshift table"
+
+extract_reddit_data >> upload_to_s3 >> copy_to_redshift
