@@ -14,3 +14,4 @@ terraform/*
 .DS_Store
 __pycache__
 airflow/redshift_download
+*.tfstate
