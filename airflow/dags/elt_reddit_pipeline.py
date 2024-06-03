@@ -5,7 +5,7 @@ from airflow.utils.dates import days_ago
 from airflow.operators.bash_operator import BashOperator
 
 """
-DAG to extract Reddit data, load into AWS S3, and copy to AWS Reddit
+DAG to extract Reddit data, load into AWS S3, and copy to AWS Reddit 
 """
 
 output_name = datetime.now().strftime("%Y%m%d")
@@ -35,7 +35,7 @@ with DAG(
 
     upload_to_s3 = BashOperator(
         task_id="upload_to_s3",
-        bash_command=f"python /opt/airflow/extraction/upload_to_s3_etl.py {output_name}",
+        bash_command=f"python /opt/airflow/extraction/upload_s3_etl.py {output_name}",
         dag=dag
     )
 
